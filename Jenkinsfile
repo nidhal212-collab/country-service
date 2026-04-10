@@ -1,45 +1,39 @@
 pipeline {
     agent any
-
     tools {
         maven 'M2_HOME'
     }
-
     stages {
         stage('Checkout code') {
             steps {
-                git branch: 'main', url: 'https://github.com/nidhal212-collab/country-service.git'
+                git branch: 'master', url: 'https://github.com/nidhal212-collab/country-service.git'
+            }
+        }
+        
+        stage('Build maven') {
+            steps {
+                sh 'mvn clean install'
             }
         }
 
-        stage('Compile code') {
+        stage('Build Dockerfile ') {
             steps {
-                sh 'mvn compile'
+                sh 'docker build . -t my-country-service:$BUILD_NUMBER '
+               withCredentials([string(credentialsId: 'dockerPaswd', variable: 'dockerhuBpwd')]) {
+                   sh 'docker login -u nidhalsd -p ${dockerhuBpwd}'
+               }
+                sh 'docker tag my-country-service:$BUILD_NUMBER nidhalsd/my-country-service:$BUILD_NUMBER'
+                sh 'docker push nidhalsd/my-country-service:$BUILD_NUMBER'
             }
         }
 
-        stage('Test code') {
+        stage('Deploy microservice') {
             steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: '*/target/surefire-reports/.xml'
-                }
-            }
-        }
-
-        stage('Package code') {
-            steps {
-                sh 'mvn package'
-            }
-        }
-
-        stage('Deploy to Tomcat') {
-            steps {
-                sh 'cp target/*.war /var/lib/tomcat10/webapps/'
+                sh '''
+                    docker rm -f country-service || true
+                    docker run -d -p 8082:8082 --name country-service my-country-service:$BUILD_NUMBER
+                '''
             }
         }
     }
-    
 }
