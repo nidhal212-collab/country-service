@@ -9,19 +9,19 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/nidhal212-collab/country-service.git'
             }
         }
-        
+
         stage('Build maven') {
             steps {
                 sh 'mvn clean install'
             }
         }
 
-        stage('Build Dockerfile ') {
+        stage('Build Dockerfile') {
             steps {
-                sh 'docker build . -t my-country-service:$BUILD_NUMBER '
-               withCredentials([string(credentialsId: 'dockerPaswd', variable: 'dockerhuBpwd')]) {
-                   sh 'docker login -u nidhalsd -p ${dockerhuBpwd}'
-               }
+                sh 'docker build -t my-country-service:$BUILD_NUMBER .'
+                withCredentials([string(credentialsId: 'dockerPaswd', variable: 'DOCKER_PASSWORD')]) {
+                    sh 'echo $DOCKER_PASSWORD | docker login -u nidhalsd --password-stdin'
+                }
                 sh 'docker tag my-country-service:$BUILD_NUMBER nidhalsd/my-country-service:$BUILD_NUMBER'
                 sh 'docker push nidhalsd/my-country-service:$BUILD_NUMBER'
             }
