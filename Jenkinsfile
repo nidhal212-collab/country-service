@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Checkout code') {
             steps {
-                git branch: 'master', url: 'https://github.com/nidhal212-collab/country-service.git'
+                git branch: 'main', url: 'https://github.com/nidhal212-collab/country-service.git'
             }
         }
         
