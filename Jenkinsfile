@@ -25,8 +25,8 @@ pipeline {
 
         stage('Docker login') {
             steps {
-                withCredentials([string(credentialsId: 'dockerPaswd', variable: 'dockerhubPwd')]) {
-                    sh 'echo "$dockerhubPwd" | docker login -u nidhalsd --password-stdin'
+                withCredentials([string(credentialsId: 'docker', variable: 'dockerPaswd')]) {
+                    sh 'echo "$dockerPaswd" | docker login -u nidhalsd --password-stdin'
                 }
             }
         }
