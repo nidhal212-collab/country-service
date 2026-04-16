@@ -1,8 +1,15 @@
 pipeline {
     agent any
+
     tools {
         maven 'M2_HOME'
     }
+
+    environment {
+        IMAGE_NAME = 'my-country-service'
+        DOCKERHUB_REPO = 'nidhalsd/my-country-service'
+    }
+
     stages {
         stage('Checkout code') {
             steps {
@@ -16,14 +23,24 @@ pipeline {
             }
         }
 
-        stage('Build Dockerfile') {
+        stage('Docker login') {
             steps {
-                sh 'docker build . -t my-country-service:$BUILD_NUMBER '
                 withCredentials([string(credentialsId: 'dockerPaswd', variable: 'dockerhubPwd')]) {
-                    sh 'docker login -u nidhalsd -p ${dockerhubPwd}'
-                                        }
-                sh 'docker tag my-country-service:$BUILD_NUMBER nidhalsd/my-country-service:$BUILD_NUMBER'
-                sh 'docker push nidhalsd/my-country-service:$BUILD_NUMBER'
+                    sh 'echo "$dockerhubPwd" | docker login -u nidhalsd --password-stdin'
+                }
+            }
+        }
+
+        stage('Build Docker image') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} .'
+            }
+        }
+
+        stage('Tag and Push image') {
+            steps {
+                sh 'docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ${DOCKERHUB_REPO}:${BUILD_NUMBER}'
+                sh 'docker push ${DOCKERHUB_REPO}:${BUILD_NUMBER}'
             }
         }
 
@@ -31,7 +48,8 @@ pipeline {
             steps {
                 sh '''
                     docker rm -f country-service || true
-                    docker run -d -p 8082:8082 --name country-service my-country-service:$BUILD_NUMBER
+                    docker pull ${DOCKERHUB_REPO}:${BUILD_NUMBER}
+                    docker run -d -p 8082:8082 --name country-service ${DOCKERHUB_REPO}:${BUILD_NUMBER}
                 '''
             }
         }
