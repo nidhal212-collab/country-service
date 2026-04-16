@@ -18,10 +18,10 @@ pipeline {
 
         stage('Build Dockerfile') {
             steps {
-                sh 'docker build -t my-country-service:$BUILD_NUMBER .'
-                withCredentials([string(credentialsId: 'dockerPaswd', variable: 'DOCKER_PASSWORD')]) {
-                    sh 'echo $DOCKER_PASSWORD | docker login -u nidhalsd --password-stdin'
-                }
+                sh 'docker build . -t my-country-service:$BUILD_NUMBER '
+                withCredentials([string(credentialsId: 'dockerPaswd', variable: 'dockerhubPwd')]) {
+                    sh 'docker login -u nidhalsd -p ${dockerhubPwd}'
+                                        }
                 sh 'docker tag my-country-service:$BUILD_NUMBER nidhalsd/my-country-service:$BUILD_NUMBER'
                 sh 'docker push nidhalsd/my-country-service:$BUILD_NUMBER'
             }
