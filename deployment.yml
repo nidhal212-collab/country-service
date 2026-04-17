@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: country-service-container
-          image: my-country-service:v1
+          image: nidhalsd/my-country-service:latest
           ports:
             - containerPort: 8082
