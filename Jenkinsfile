@@ -61,7 +61,6 @@ pipeline {
                     withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'kubeconfigFile', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
                         sh 'kubectl apply -f deployment.yaml'
                         sh 'kubectl apply -f service.yaml'
-                    }
                 }
             }
     }
