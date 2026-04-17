@@ -52,6 +52,16 @@ pipeline {
                     docker run -d -p 8082:8082 --name country-service ${DOCKERHUB_REPO}:${BUILD_NUMBER}
                 '''
             }
+
         }
+        stage('Deploy to kubernetes') {
+            steps {
+                script {
+                    withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'kubeconfigFile', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+                        sh 'kubectl apply -f deployment.yaml'
+                        sh 'kubectl apply -f service.yaml'
+                    }
+                }
+            }
     }
 }
